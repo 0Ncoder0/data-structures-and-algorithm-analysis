@@ -11,14 +11,6 @@ export class Stack<T> {
   /** 头结点，不保存元素 */
   public head: Node<T> = new Node<T>()
 
-  /** 清空栈 */
-  public makeEmpty(): void {
-    this.head.next = null
-  }
-  /** 检查栈是否为空 */
-  public isEmpty(): boolean {
-    return this.head.next === null
-  }
   /** 入栈 */
   public push(element: T): void {
     const newNode = new Node<T>()

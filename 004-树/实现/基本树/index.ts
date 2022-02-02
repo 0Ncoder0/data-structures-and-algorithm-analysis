@@ -25,7 +25,7 @@ export class Tree<T> {
       if (node !== null && node.element !== element) {
         let child = node.children.head
         for (;;) {
-          child = node.children.advance(child)
+          child = child.next
           if (child !== null && child.element !== null) queue.enqueue(child.element)
           else break
         }
