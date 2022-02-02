@@ -1,5 +1,5 @@
 /** 结点 */
-export class Node<T> {
+class Node<T> {
   /** 当前结点的元素 */
   public element: T | null = null
   /** 下一个结点 */
@@ -9,11 +9,7 @@ export class Node<T> {
 /** 链表 */
 export class List<T> {
   /** 头结点，不保存元素 */
-  public head: Node<T> = null
-
-  public constructor() {
-    this.head = new Node<T>()
-  }
+  public head: Node<T> = new Node<T>()
 
   /** 清空链表 */
   public makeEmpty(): void {
