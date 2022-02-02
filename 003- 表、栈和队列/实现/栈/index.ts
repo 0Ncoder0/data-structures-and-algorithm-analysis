@@ -7,7 +7,7 @@ class Node<T> {
 }
 
 /** 栈 */
-class Stack<T> {
+export class Stack<T> {
   /** 头结点，不保存元素 */
   public head: Node<T> = new Node<T>()
 
