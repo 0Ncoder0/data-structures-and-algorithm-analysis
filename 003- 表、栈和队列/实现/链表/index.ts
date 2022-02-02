@@ -51,8 +51,10 @@ export class List<T> {
   public insert(element: T, node: Node<T>): void {
     const newNode = new Node<T>()
     newNode.element = element
+    newNode.next = node.next
     node.next = newNode
   }
+
   /** 返回给定结点的下一个结点 */
   public advance(node: Node<T>): Node<T> | null {
     return node.next
