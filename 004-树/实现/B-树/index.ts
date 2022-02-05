@@ -12,11 +12,8 @@ class Node<T> {
 
 /** 保存操作 B-树 的方法 */
 class Operator {
-  public static updateElements<T>(node: Node<T>): void {
-    node.elements = []
-    node.children.forEach((child, index) => index && node.elements.push(child.elements[0]))
-  }
 
+  /** 是否超出容量 */
   public static isOversized<T>(node: Node<T>): boolean {
     if (node.children.length === 0) {
       return node.elements.length > node.size
@@ -25,72 +22,57 @@ class Operator {
     }
   }
 
-  /** 创建兄弟节点承担半数元素，并返回两个节点 */
-  public static split<T>(node: Node<T>): Node<T>[] {
+  /** 分裂子节点，并插入到父节点中 */
+  public static split<T>(node: Node<T>, insertTo: number, parent: Node<T>) {
     const brother = new Node<T>()
-    brother.parent = node.parent
+    brother.parent = parent
     brother.size = node.size
 
+    const half = (node.size + 1) / 2
+
     if (node.children.length === 0) {
-      for (let i = 0; i < (node.size + 1) / 2; i++) {
-        brother.elements.push(node.elements.shift())
+      for (let i = 0; i < half; i++) {
+        brother.elements.unshift(node.elements.pop())
       }
+      parent.elements.splice(insertTo, 0, brother.elements[0])
+
     } else {
-      for (let i = 0; i < (node.size + 1) / 2; i++) {
-        brother.children.push(node.children.shift())
+      for (let i = 0; i < half; i++) {
+        brother.children.unshift(node.children.pop())
       }
-      Operator.updateElements(brother)
-      Operator.updateElements(node)
+      for (let i = 0; i < half - 1; i++) {
+        brother.elements.unshift(node.elements.pop())
+      }
+      parent.elements.splice(insertTo, 0, node.elements.pop())
     }
 
-    return [brother, node]
+    parent.children.splice(insertTo + 1, 0, brother)
   }
 
   /** 插入元素 */
   public static insert<T>(element: T, node: Node<T>): Node<T> | null {
+    let insertTo = -1
+    for (insertTo = 0; insertTo < node.elements.length; insertTo++) {
+      if (element < node.elements[insertTo]) break
+    }
+
     if (node.elements.includes(element)) {
     } else if (node.children.length === 0) {
-      node.elements.push(element)
-      node.elements.sort((a, b) => (a > b ? 1 : -1))
+      node.elements.splice(insertTo, 0, element)
     } else {
-      let insertTo = -1
-
-      for (let i = 0; i < node.elements.length; i++) {
-        const thisElement = node.elements[i]
-        const nextElement = node.elements[i + 1]
-        if (i === 0) {
-          if (element < thisElement) {
-            insertTo = 0
-          }
-        }
-        if (nextElement === undefined) {
-          if (element > thisElement) {
-            insertTo = i + 1
-          }
-        }
-        if (element > thisElement && element < nextElement) {
-          insertTo = i + 1
-        }
-      }
-
       const child = node.children[insertTo]
-
       Operator.insert(element, child)
       if (Operator.isOversized(child)) {
-        node.children.splice(insertTo, 1, ...Operator.split(child))
-        Operator.updateElements(node)
+        Operator.split(child, insertTo, node)
       }
     }
 
     if (node.parent === null && Operator.isOversized(node)) {
-      const [first, second] = Operator.split(node)
       const parent = new Node<T>()
-      parent.children = [first, second]
-      parent.elements = [second.elements[0]]
-      parent.size = first.size
-
-      first.parent = parent
-      second.parent = parent
+      parent.children.push(node)
+      parent.size = node.size
+      node.parent = parent
+      Operator.split(node, 0, parent)
       node = parent
     }
 
@@ -111,9 +93,6 @@ export class BTree<T> {
   /** 根节点 */
   public root: Node<T> = null
 
-  /**
-   * @param size 叶节点的容量，对应的此树的最大容量为 size 的阶乘
-   */
   public constructor(size = 4) {
     this.root = new Node<T>()
     this.root.size = size
@@ -137,12 +116,13 @@ export class BTree<T> {
 class Checker {
   public tree = new BTree<number>(4)
   public store: number[] = []
-  public elementRange = 1000
-  public testCaseCount = 1000
+  public elementRange = 10
+  public testCaseCount = 10
   public allowPrint = false
 
   public go() {
     this.randomInserts()
+    this.print()
   }
 
   public randomInserts() {
@@ -211,19 +191,5 @@ class Checker {
   }
 }
 
-const checker = new Checker()
-checker.tree = new BTree(3)
-checker.elementRange = 100
-checker.testCaseCount = 10
-checker.allowPrint = true
-checker.go()
 
-/**
- * 87
- *   34
- *     23,27
- *     34,52
- *   87
- *     59,64
- *     87,92
- */
+new Checker().go()
